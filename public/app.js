@@ -12,6 +12,9 @@ const installButton = document.querySelector('#install-button');
 const installPrompt = document.querySelector('#install-prompt');
 const menuButton = document.querySelector('#menu-button');
 const desktopNav = document.querySelector('.desktop-nav');
+const mediaUrl = document.querySelector('#media-url');
+const clipboardPaste = document.querySelector('#clipboard-paste');
+const clipboardStatus = document.querySelector('#clipboard-status');
 let deferredInstall;
 const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
@@ -19,6 +22,20 @@ function setStatus(text, busy = false) { status.textContent = text; status.class
 function formatSize(bytes) { if (!bytes) return 'Size unavailable'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`; }
 function formatDuration(seconds) { if (!seconds) return ''; const minutes = Math.floor(seconds / 60); const remainder = Math.round(seconds % 60).toString().padStart(2, '0'); return `${minutes}:${remainder}`; }
 function showError(message) { result.hidden = true; setStatus(message); }
+function isSupportedUrl(value) {
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) && (/\.(mp4|webm|mov|m4v|mp3|m4a|wav|jpg|jpeg|png|webp|gif)(?:$|[?#])/i.test(url.pathname) || /(^|\.)((youtube\.com)|(youtu\.be)|(tiktok\.com)|(instagram\.com)|(facebook\.com)|(fb\.watch)|(x\.com)|(twitter\.com)|(vimeo\.com))$/i.test(url.hostname));
+  } catch { return false; }
+}
+function fillFromClipboard(value) {
+  if (!mediaUrl.value && isSupportedUrl(value)) { mediaUrl.value = value; clipboardStatus.textContent = 'Link ready'; return true; }
+  return false;
+}
+async function readClipboard() {
+  if (!navigator.clipboard?.readText) { clipboardStatus.textContent = 'Paste manually'; return; }
+  try { fillFromClipboard((await navigator.clipboard.readText()).trim()); } catch { clipboardStatus.textContent = 'Paste manually'; }
+}
 function renderFormats(data) {
   document.querySelector('#result-source').textContent = data.source.toUpperCase();
   document.querySelector('#result-title').textContent = data.title || 'Public media';
@@ -26,7 +43,7 @@ function renderFormats(data) {
   const thumbnail = document.querySelector('.media-placeholder');
   if (data.thumbnail) thumbnail.innerHTML = `<img src="${data.thumbnail}" alt="" loading="lazy">`;
   const groups = ['photo', 'video', 'audio'].filter((type) => data.formats.some((item) => item.type === type));
-  formats.innerHTML = groups.map((type) => `<div class="format-group"><div class="format-type">${type.toUpperCase()}</div>${data.formats.filter((item) => item.type === type).map((item) => `<div class="format-row"><div class="format-meta"><div><strong>${item.quality} · ${item.format.toUpperCase()}</strong><div class="muted">${formatSize(item.size)}</div></div></div><button class="primary-button" data-format-id="${item.id}">Download <b>↓</b></button></div>`).join('')}</div>`).join('');
+  formats.innerHTML = groups.map((type) => `<div class="format-group"><div class="format-type">${type.toUpperCase()}</div>${data.formats.filter((item) => item.type === type).map((item) => { const highlighted = type === 'video' && ['720p', '1080p'].includes(item.quality.toLowerCase()); return `<div class="format-row${highlighted ? ' quality-featured' : ''}"><div class="format-meta"><div><strong>${item.quality} · ${item.format.toUpperCase()}</strong>${highlighted ? '<span class="quality-badge">Quality choice</span>' : ''}<div class="muted">${formatSize(item.size)}</div></div></div><button class="primary-button" data-format-id="${item.id}">Download <b>↓</b></button></div>`; }).join('')}</div>`).join('');
   result.hidden = false;
   formats.querySelectorAll('[data-format-id]').forEach((button) => button.addEventListener('click', () => download(button.dataset.formatId, button)));
 }
@@ -42,6 +59,9 @@ form.addEventListener('submit', async (event) => {
     setStatus('Formats verified.'); renderFormats(data);
   } catch (error) { showError(error.message === 'Failed to fetch' ? 'Server unavailable. Start the local server and try again.' : error.message); }
 });
+
+clipboardPaste.addEventListener('click', readClipboard);
+window.addEventListener('load', () => { if (!mediaUrl.value) readClipboard(); });
 
 menuButton.addEventListener('click', () => {
   const open = desktopNav.classList.toggle('mobile-open');
