@@ -1,8 +1,0 @@
-[build]
-  publish = "public"
-  command = "node scripts/generate-runtime-config.js"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200

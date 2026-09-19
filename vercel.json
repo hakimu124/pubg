@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "buildCommand": "node scripts/generate-runtime-config.js",
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
