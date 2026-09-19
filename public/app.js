@@ -20,7 +20,8 @@ const installDescription = document.querySelector('#install-description');
 let deferredInstall;
 const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const apiBaseUrl = String(window.GITARU_API_BASE_URL || '').replace(/\/$/, '');
+const localHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const apiBaseUrl = (localHost ? `${window.location.protocol}//${window.location.host}` : String(window.GITARU_API_BASE_URL || '')).replace(/\/$/, '');
 function apiUrl(path) { return `${apiBaseUrl}${path}`; }
 
 function setStatus(text, busy = false) { status.textContent = text; status.classList.toggle('busy', busy); }

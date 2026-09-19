@@ -7,7 +7,7 @@ export const config = {
   root,
   publicDir: path.join(root, '..', 'public'),
   port: Number(process.env.PORT || 8787),
-  frontendOrigin: process.env.FRONTEND_ORIGIN || 'https://sirisia.netlify.app',
+  frontendOrigins: [...new Set([...(process.env.FRONTEND_ORIGIN || 'https://sirisia.netlify.app').split(',').map((origin) => origin.trim()).filter(Boolean), 'http://localhost:8787', 'http://127.0.0.1:8787'])],
   maxDownloadSize: parseSize(process.env.MAX_DOWNLOAD_SIZE || '500MB'),
   tokenTtlMs: 10 * 60 * 1000,
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),

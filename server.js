@@ -4,6 +4,7 @@ import { cleanupTokens, downloadHandler, json, metadataHandler, setCors, sources
 
 const server = http.createServer(async (req, res) => {
   try {
+    res.gitaruRequestOrigin = req.headers.origin || '';
     if (req.method === 'OPTIONS') { setCors(res); res.writeHead(204); return res.end(); }
     if (req.method === 'POST' && req.url === '/api/metadata') return await metadataHandler(req, res);
     if (req.method === 'POST' && req.url === '/api/download') return await downloadHandler(req, res);

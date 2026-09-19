@@ -19,7 +19,9 @@ export function json(res, status, value) {
 }
 
 export function setCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', config.frontendOrigin);
+  const requestedOrigin = res.gitaruRequestOrigin;
+  const allowedOrigin = config.frontendOrigins.includes(requestedOrigin) ? requestedOrigin : config.frontendOrigins[0];
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
