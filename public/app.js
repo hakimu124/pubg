@@ -45,6 +45,12 @@ menuButton.addEventListener('click', () => {
 });
 desktopNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => desktopNav.classList.remove('mobile-open')));
 
+fetch('/api/sources').then((response) => response.json()).then((data) => {
+  const tiktok = data.sources?.find((source) => source.id === 'tiktok');
+  const tiktokStatus = document.querySelector('[data-source-id="tiktok"] strong');
+  if (tiktok && tiktokStatus) tiktokStatus.textContent = tiktok.label;
+}).catch(() => {});
+
 async function download(formatId, button) {
   button.disabled = true; button.querySelector('b').textContent = '…'; setStatus('Preparing download…', true);
   try {

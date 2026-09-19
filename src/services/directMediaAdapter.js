@@ -20,7 +20,7 @@ export function createDirectMediaAdapter({ validateUrl, maxDownloadSize, tokenTt
       if (size > maxDownloadSize) throw new Error('TOO_LARGE');
       const extension = mimeExtensions[contentType] || contentType.split('/')[1] || 'bin';
       const id = crypto.randomBytes(24).toString('hex');
-      const metadata = { url: resolved.url.toString(), title: titleFromUrl(resolved.url), source: sourceName(resolved.url), contentType, extension, size, expires: Date.now() + tokenTtlMs };
+      const metadata = { adapter: 'direct', url: resolved.url.toString(), title: titleFromUrl(resolved.url), source: sourceName(resolved.url), contentType, extension, size, expires: Date.now() + tokenTtlMs };
       tokens.set(id, metadata);
       return { success: true, source: metadata.source, title: metadata.title, thumbnail: null, duration: null, formats: [{ id, type: contentType.startsWith('video/') ? 'video' : 'audio', quality: 'Original', format: extension, size: size || null }], note: 'Direct public media only. Platform pages are not fetched.' };
     },

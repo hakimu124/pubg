@@ -32,4 +32,4 @@ node --test tests
 
 Open http://localhost:8787.
 
-The current verified adapter supports direct public audio/video URLs only. Platform pages are shown as coming soon until a compliant, reliable adapter is implemented. Copy `.env.example` to `.env` when configuring limits or a different port.
+Verified adapters support direct public audio/video URLs and public TikTok posts through `yt-dlp`. Private, login-only, DRM-protected, or unavailable posts are rejected. Copy `.env.example` to `.env`; set `YTDLP_PATH` to the local `yt-dlp` executable when it is not on PATH.
