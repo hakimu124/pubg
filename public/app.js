@@ -29,6 +29,7 @@ async function readApiResponse(response) {
   if (!contentType.includes('application/json')) throw new Error(response.status === 404 ? 'Downloader backend is not connected to this website.' : 'Server returned an unexpected response.');
   return response.json();
 }
+  function backendUnavailableMessage() { return apiBaseUrl ? 'Downloader backend is unavailable. Check the backend deployment.' : 'Downloader backend is not connected. Set API_BASE_URL in Netlify to your backend URL.'; }
 function formatSize(bytes) { if (!bytes) return 'Size unavailable'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`; }
 function formatDuration(seconds) { if (!seconds) return ''; const minutes = Math.floor(seconds / 60); const remainder = Math.round(seconds % 60).toString().padStart(2, '0'); return `${minutes}:${remainder}`; }
 function showError(message) { result.hidden = true; setStatus(message); }
@@ -67,7 +68,7 @@ form.addEventListener('submit', async (event) => {
     const data = await readApiResponse(response);
     if (!response.ok || !data.success) throw new Error(data.error || 'Processing failed');
     setStatus('Formats verified.'); renderFormats(data);
-  } catch (error) { showError(error.message === 'Failed to fetch' ? 'Server unavailable. Start the local server and try again.' : error.message); }
+  } catch (error) { showError(error.message === 'Failed to fetch' ? backendUnavailableMessage() : error.message); }
 });
 
 clipboardPaste.addEventListener('click', readClipboard);
@@ -77,7 +78,7 @@ menuButton.addEventListener('click', () => {
   const open = desktopNav.classList.toggle('mobile-open');
   menuButton.setAttribute('aria-expanded', String(open));
 });
-desktopNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => desktopNav.classList.remove('mobile-open')));
+  desktopNav.querySelectorAll('a, button').forEach((link) => link.addEventListener('click', () => desktopNav.classList.remove('mobile-open')));
 
 fetch(apiUrl('/api/sources')).then(readApiResponse).then((data) => {
   data.sources?.forEach((source) => {
@@ -96,7 +97,7 @@ async function download(formatId, button) {
     if (!response.ok) { const data = await readApiResponse(response); throw new Error(data.error || 'Processing failed'); }
     setStatus('Download ready.');
     const blob = await response.blob(); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = response.headers.get('Content-Disposition')?.match(/filename="?([^";]+)"?/i)?.[1] || 'gitaru-download'; link.click(); URL.revokeObjectURL(link.href);
-  } catch (error) { setStatus(error.message === 'Failed to fetch' ? 'Network error' : error.message); } finally { button.disabled = false; button.querySelector('b').textContent = '↓'; }
+  } catch (error) { setStatus(error.message === 'Failed to fetch' ? backendUnavailableMessage() : error.message); } finally { button.disabled = false; button.querySelector('b').textContent = '↓'; }
 }
 
 function showInstallPrompt() { if (!standalone && localStorage.getItem('gitaru-install-dismissed') !== '1') installPrompt.hidden = false; }

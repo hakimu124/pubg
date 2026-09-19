@@ -19,13 +19,13 @@
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <header class="topbar">
     <a class="brand" href="/" aria-label="Gitaru home"><span class="brand-mark">AH</span><span>Gitaru</span></a>
-    <nav class="desktop-nav" aria-label="Primary navigation"><a href="#how">How it works</a><a href="#sources">Sources</a><a href="#privacy">Privacy</a></nav>
-    <div class="nav-actions"><button class="icon-button" id="theme-toggle" aria-label="Switch theme">☼</button><button class="install-button" id="install-button">Install Gitaru</button><button class="menu-button" id="menu-button" aria-label="Open menu">☰</button></div>
+    <nav class="desktop-nav" id="site-menu" aria-label="Primary navigation"><a href="#how">How it works</a><a href="#sources">Sources</a><a href="#privacy">Privacy</a><button class="menu-theme" id="theme-toggle">Switch theme <span>☼</span></button><button class="menu-install" id="install-button">Install Gitaru <span>↗</span></button></nav>
+    <div class="nav-actions"><button class="menu-button" id="menu-button" aria-label="Open menu" aria-controls="site-menu" aria-expanded="false">☰</button></div>
   </header>
   <main>
     <section class="hero" id="home">
-      <div class="hero-copy"><p class="eyebrow">FAST <span>•</span> PRIVATE <span>•</span> SIMPLE</p><h1>Download what you're allowed to keep.</h1><p class="subtitle">Paste a public media link. See the real format. Keep a copy with clarity.</p></div>
-      <form class="download-panel" id="metadata-form"><label for="media-url">Public media URL</label><div class="url-row"><input id="media-url" name="url" type="url" placeholder="Paste YouTube, TikTok, Instagram, or a media file link" autocomplete="url" required><button class="primary-button" type="submit"><span>Check link</span><b>↗</b></button></div><div class="paste-row"><button class="secondary-button" id="clipboard-paste" type="button">Paste from clipboard <b>↘</b></button><span id="clipboard-status" aria-live="polite"></span></div><p class="form-note">Choose from the real photo, audio, video, and quality formats provided by the source.</p></form>
+      <div class="hero-copy"><p class="eyebrow">FAST <span>•</span> PRIVATE <span>•</span> SIMPLE</p><h1>Download what you're allowed to keep.</h1></div>
+      <form class="download-panel" id="metadata-form"><label for="media-url">Public media URL</label><div class="url-row"><input id="media-url" name="url" type="url" placeholder="Paste a supported media link" autocomplete="url" required><button class="primary-button" type="submit"><span>Download</span><b>↗</b></button></div><div class="paste-row"><button class="secondary-button" id="clipboard-paste" type="button">Paste from clipboard <b>↘</b></button><span id="clipboard-status" aria-live="polite"></span></div></form>
       <div class="status" id="status" aria-live="polite"></div>
     </section>
     <section class="result-section" id="result" hidden><div class="result-card"><div class="result-header"><div class="media-placeholder">AH</div><div><p class="eyebrow" id="result-source">DIRECT MEDIA</p><h2 id="result-title">Your media</h2><p class="muted" id="result-note"></p></div></div><div class="format-list" id="formats"></div></div></section>
