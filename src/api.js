@@ -16,7 +16,7 @@ export function json(res, status, value) {
 }
 
 export function errorMessage(code) {
-  return ({ INVALID_URL: 'Invalid URL', UNSUPPORTED_SOURCE: 'Unsupported source', MEDIA_UNAVAILABLE: 'Media unavailable', TOO_LARGE: 'That file is too large for Gitaru.', RATE_LIMITED: 'Too many requests. Please try again later.', FORMAT_UNAVAILABLE: 'Format unavailable', TIMEOUT: 'Network error' })[code] || 'Processing failed';
+  return ({ INVALID_URL: 'Invalid URL. Paste a complete http:// or https:// link.', UNSUPPORTED_SOURCE: 'Unsupported source. Paste a direct public media file link ending in .mp4, .webm, .mp3, .m4a, or similar. Social platform pages are not supported yet.', MEDIA_UNAVAILABLE: 'Media unavailable. Check that the public file link still works.', TOO_LARGE: 'That file is too large for Gitaru.', RATE_LIMITED: 'Too many requests. Please try again later.', FORMAT_UNAVAILABLE: 'Format unavailable', TIMEOUT: 'Network error' })[code] || 'Processing failed';
 }
 
 async function readJson(req) {

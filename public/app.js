@@ -36,7 +36,7 @@ form.addEventListener('submit', async (event) => {
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || 'Processing failed');
     setStatus('Formats verified.'); renderFormats(data);
-  } catch (error) { showError(error.message === 'Failed to fetch' ? 'Server unavailable' : error.message); }
+  } catch (error) { showError(error.message === 'Failed to fetch' ? 'Server unavailable. Start the local server and try again.' : error.message); }
 });
 
 menuButton.addEventListener('click', () => {
