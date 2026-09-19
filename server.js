@@ -1,10 +1,10 @@
 import http from 'node:http';
 import { config } from './src/config.js';
-import { cleanupTokens, downloadHandler, json, metadataHandler, sourcesHandler, staticHandler } from './src/api.js';
+import { cleanupTokens, downloadHandler, json, metadataHandler, setCors, sourcesHandler, staticHandler } from './src/api.js';
 
 const server = http.createServer(async (req, res) => {
   try {
-    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+    if (req.method === 'OPTIONS') { setCors(res); res.writeHead(204); return res.end(); }
     if (req.method === 'POST' && req.url === '/api/metadata') return await metadataHandler(req, res);
     if (req.method === 'POST' && req.url === '/api/download') return await downloadHandler(req, res);
     if (req.method === 'GET' && req.url === '/api/sources') return sourcesHandler(req, res);
