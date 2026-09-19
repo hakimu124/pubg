@@ -58,5 +58,7 @@ async function download(formatId, button) {
 window.addEventListener('beforeinstallprompt', (event) => { event.preventDefault(); deferredInstall = event; if (!standalone && localStorage.getItem('gitaru-install-dismissed') !== '1') installPrompt.hidden = false; });
 function install() { if (deferredInstall) { deferredInstall.prompt(); deferredInstall.userChoice.finally(() => { deferredInstall = null; installPrompt.hidden = true; }); } else { alert('On iPhone or iPad, use Share, then Add to Home Screen.'); } }
 installButton.addEventListener('click', install); document.querySelector('#prompt-install').addEventListener('click', install); document.querySelector('#dismiss-install').addEventListener('click', () => { installPrompt.hidden = true; localStorage.setItem('gitaru-install-dismissed', '1'); });
-window.addEventListener('online', () => { document.querySelector('#offline-banner').hidden = true; }); window.addEventListener('offline', () => { document.querySelector('#offline-banner').hidden = false; });
+const offlineBanner = document.querySelector('#offline-banner');
+function updateConnectionState() { offlineBanner.hidden = navigator.onLine; }
+window.addEventListener('online', updateConnectionState); window.addEventListener('offline', updateConnectionState); updateConnectionState();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
