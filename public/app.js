@@ -15,8 +15,11 @@ const desktopNav = document.querySelector('.desktop-nav');
 const mediaUrl = document.querySelector('#media-url');
 const clipboardPaste = document.querySelector('#clipboard-paste');
 const clipboardStatus = document.querySelector('#clipboard-status');
+const installTitle = document.querySelector('#install-title');
+const installDescription = document.querySelector('#install-description');
 let deferredInstall;
 const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 function setStatus(text, busy = false) { status.textContent = text; status.classList.toggle('busy', busy); }
 function formatSize(bytes) { if (!bytes) return 'Size unavailable'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`; }
@@ -89,9 +92,15 @@ async function download(formatId, button) {
   } catch (error) { setStatus(error.message === 'Failed to fetch' ? 'Network error' : error.message); } finally { button.disabled = false; button.querySelector('b').textContent = '↓'; }
 }
 
-window.addEventListener('beforeinstallprompt', (event) => { event.preventDefault(); deferredInstall = event; if (!standalone && localStorage.getItem('gitaru-install-dismissed') !== '1') installPrompt.hidden = false; });
-function install() { if (deferredInstall) { deferredInstall.prompt(); deferredInstall.userChoice.finally(() => { deferredInstall = null; installPrompt.hidden = true; }); } else { alert('On iPhone or iPad, use Share, then Add to Home Screen.'); } }
+function showInstallPrompt() { if (!standalone && localStorage.getItem('gitaru-install-dismissed') !== '1') installPrompt.hidden = false; }
+window.addEventListener('beforeinstallprompt', (event) => { event.preventDefault(); deferredInstall = event; showInstallPrompt(); });
+function install() {
+  if (deferredInstall) { deferredInstall.prompt(); deferredInstall.userChoice.finally(() => { deferredInstall = null; installPrompt.hidden = true; }); return; }
+  if (isIos) { installTitle.textContent = 'Add Gitaru to your iPhone'; installDescription.textContent = 'In Safari, tap Share, then Add to Home Screen.'; return; }
+  installTitle.textContent = 'Install Gitaru'; installDescription.textContent = 'Use your browser menu to add Gitaru to your home screen.';
+}
 installButton.addEventListener('click', install); document.querySelector('#prompt-install').addEventListener('click', install); document.querySelector('#dismiss-install').addEventListener('click', () => { installPrompt.hidden = true; localStorage.setItem('gitaru-install-dismissed', '1'); });
+window.addEventListener('load', () => { if (isIos && !standalone) { installTitle.textContent = 'Add Gitaru to your iPhone'; installDescription.textContent = 'In Safari, tap Share, then Add to Home Screen.'; showInstallPrompt(); } });
 const offlineBanner = document.querySelector('#offline-banner');
 function updateConnectionState() { offlineBanner.hidden = navigator.onLine; }
 window.addEventListener('online', updateConnectionState); window.addEventListener('offline', updateConnectionState); updateConnectionState();
