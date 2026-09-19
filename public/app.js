@@ -20,6 +20,8 @@ const installDescription = document.querySelector('#install-description');
 let deferredInstall;
 const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const apiBaseUrl = String(window.GITARU_API_BASE_URL || '').replace(/\/$/, '');
+function apiUrl(path) { return `${apiBaseUrl}${path}`; }
 
 function setStatus(text, busy = false) { status.textContent = text; status.classList.toggle('busy', busy); }
 async function readApiResponse(response) {
@@ -61,7 +63,7 @@ form.addEventListener('submit', async (event) => {
   const url = new FormData(form).get('url') || document.querySelector('#media-url').value;
   setStatus('Checking link…', true); result.hidden = true;
   try {
-    const response = await fetch('/api/metadata', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+    const response = await fetch(apiUrl('/api/metadata'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
     const data = await readApiResponse(response);
     if (!response.ok || !data.success) throw new Error(data.error || 'Processing failed');
     setStatus('Formats verified.'); renderFormats(data);
@@ -77,7 +79,7 @@ menuButton.addEventListener('click', () => {
 });
 desktopNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => desktopNav.classList.remove('mobile-open')));
 
-fetch('/api/sources').then(readApiResponse).then((data) => {
+fetch(apiUrl('/api/sources')).then(readApiResponse).then((data) => {
   data.sources?.forEach((source) => {
     const sourceStatus = document.querySelector(`[data-source-id="${source.id}"]`);
     if (!sourceStatus) return;
@@ -90,7 +92,7 @@ fetch('/api/sources').then(readApiResponse).then((data) => {
 async function download(formatId, button) {
   button.disabled = true; button.querySelector('b').textContent = '…'; setStatus('Preparing download…', true);
   try {
-    const response = await fetch('/api/download', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ formatId }) });
+    const response = await fetch(apiUrl('/api/download'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ formatId }) });
     if (!response.ok) { const data = await readApiResponse(response); throw new Error(data.error || 'Processing failed'); }
     setStatus('Download ready.');
     const blob = await response.blob(); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = response.headers.get('Content-Disposition')?.match(/filename="?([^";]+)"?/i)?.[1] || 'gitaru-download'; link.click(); URL.revokeObjectURL(link.href);

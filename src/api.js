@@ -13,8 +13,16 @@ const metadataAllowed = createRateLimiter({ windowMs: config.rateLimitWindowMs, 
 const downloadAllowed = createRateLimiter({ windowMs: config.rateLimitWindowMs, limit: config.downloadRateLimit });
 
 export function json(res, status, value) {
+  setCors(res);
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
   res.end(JSON.stringify(value));
+}
+
+export function setCors(res) {
+  res.setHeader('Access-Control-Allow-Origin', config.frontendOrigin);
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
 }
 
 export function errorMessage(code) {
