@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111318">
+  <meta name="description" content="Gitaru: download public media you are allowed to keep.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Gitaru | Keep what is yours</title>
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Gitaru home"><span class="brand-mark">G</span><span>Gitaru</span></a>
+    <nav class="desktop-nav" aria-label="Primary navigation"><a href="#how">How it works</a><a href="#sources">Sources</a><a href="#privacy">Privacy</a></nav>
+    <div class="nav-actions"><button class="icon-button" id="theme-toggle" aria-label="Switch theme">☼</button><button class="install-button" id="install-button">Install Gitaru</button><button class="menu-button" id="menu-button" aria-label="Open menu">☰</button></div>
+  </header>
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-copy"><p class="eyebrow">FAST <span>•</span> PRIVATE <span>•</span> SIMPLE</p><h1>Download what you're allowed to keep.</h1><p class="subtitle">Paste a public media link. See the real format. Keep a copy with clarity.</p></div>
+      <form class="download-panel" id="metadata-form"><label for="media-url">Public media URL</label><div class="url-row"><input id="media-url" name="url" type="url" placeholder="https://example.com/video.mp4" autocomplete="url" required><button class="primary-button" type="submit"><span>Check link</span><b>↗</b></button></div><p class="form-note">Direct public audio and video files are supported. Platform pages are coming soon.</p></form>
+      <div class="status" id="status" aria-live="polite"></div>
+    </section>
+    <section class="result-section" id="result" hidden><div class="result-card"><div class="result-header"><div class="media-placeholder">G</div><div><p class="eyebrow" id="result-source">DIRECT MEDIA</p><h2 id="result-title">Your media</h2><p class="muted" id="result-note"></p></div></div><div class="format-list" id="formats"></div></div></section>
+    <section class="info-grid" id="how"><article><span class="step">01</span><h3>Paste</h3><p>Start with a public file URL you have permission to use.</p></article><article><span class="step">02</span><h3>Inspect</h3><p>Gitaru checks the server response and shows what is really available.</p></article><article><span class="step">03</span><h3>Keep</h3><p>Choose the verified format and receive the actual file.</p></article></section>
+    <section class="sources-section" id="sources"><div><p class="eyebrow">SOURCE STATUS</p><h2>Honest by design.</h2></div><div class="source-status"><span class="live-dot"></span><strong>Direct public media</strong><span>Supported</span></div><div class="source-status muted-source"><span></span><strong>Platform pages</strong><span>Coming soon</span></div></section>
+    <section class="privacy-section" id="privacy"><p class="eyebrow">YOUR MEDIA, YOUR CONTROL</p><h2>No account. No hidden queue.</h2><p>Format tokens expire quickly, downloads are rate limited, and Gitaru never accepts arbitrary commands or filesystem paths from the browser.</p></section>
+  </main>
+  <footer><span>© 2026 Gitaru</span><span>Built for permitted public media</span></footer>
+  <div class="install-prompt" id="install-prompt" hidden><div class="prompt-icon">G</div><div><strong>Install Gitaru</strong><p>Keep the full utility close at hand.</p></div><button class="primary-button small" id="prompt-install">Install</button><button class="text-button" id="dismiss-install">Not now</button></div>
+  <div class="offline-banner" id="offline-banner" hidden>Gitaru is offline. Browsing works, but downloading needs an internet connection.</div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
