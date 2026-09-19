@@ -22,6 +22,11 @@ const standalone = window.matchMedia('(display-mode: standalone)').matches || wi
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 function setStatus(text, busy = false) { status.textContent = text; status.classList.toggle('busy', busy); }
+async function readApiResponse(response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) throw new Error(response.status === 404 ? 'Downloader backend is not connected to this website.' : 'Server returned an unexpected response.');
+  return response.json();
+}
 function formatSize(bytes) { if (!bytes) return 'Size unavailable'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`; }
 function formatDuration(seconds) { if (!seconds) return ''; const minutes = Math.floor(seconds / 60); const remainder = Math.round(seconds % 60).toString().padStart(2, '0'); return `${minutes}:${remainder}`; }
 function showError(message) { result.hidden = true; setStatus(message); }
@@ -57,7 +62,7 @@ form.addEventListener('submit', async (event) => {
   setStatus('Checking link…', true); result.hidden = true;
   try {
     const response = await fetch('/api/metadata', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
-    const data = await response.json();
+    const data = await readApiResponse(response);
     if (!response.ok || !data.success) throw new Error(data.error || 'Processing failed');
     setStatus('Formats verified.'); renderFormats(data);
   } catch (error) { showError(error.message === 'Failed to fetch' ? 'Server unavailable. Start the local server and try again.' : error.message); }
@@ -72,7 +77,7 @@ menuButton.addEventListener('click', () => {
 });
 desktopNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => desktopNav.classList.remove('mobile-open')));
 
-fetch('/api/sources').then((response) => response.json()).then((data) => {
+fetch('/api/sources').then(readApiResponse).then((data) => {
   data.sources?.forEach((source) => {
     const sourceStatus = document.querySelector(`[data-source-id="${source.id}"]`);
     if (!sourceStatus) return;
@@ -86,7 +91,7 @@ async function download(formatId, button) {
   button.disabled = true; button.querySelector('b').textContent = '…'; setStatus('Preparing download…', true);
   try {
     const response = await fetch('/api/download', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ formatId }) });
-    if (!response.ok) { const data = await response.json(); throw new Error(data.error || 'Processing failed'); }
+    if (!response.ok) { const data = await readApiResponse(response); throw new Error(data.error || 'Processing failed'); }
     setStatus('Download ready.');
     const blob = await response.blob(); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = response.headers.get('Content-Disposition')?.match(/filename="?([^";]+)"?/i)?.[1] || 'gitaru-download'; link.click(); URL.revokeObjectURL(link.href);
   } catch (error) { setStatus(error.message === 'Failed to fetch' ? 'Network error' : error.message); } finally { button.disabled = false; button.querySelector('b').textContent = '↓'; }
@@ -99,6 +104,8 @@ function install() {
   if (isIos) { installTitle.textContent = 'Add Gitaru to your iPhone'; installDescription.textContent = 'In Safari, tap Share, then Add to Home Screen.'; return; }
   installTitle.textContent = 'Install Gitaru'; installDescription.textContent = 'Use your browser menu to add Gitaru to your home screen.';
 }
+function hideInstallUi() { installPrompt.hidden = true; installButton.hidden = true; }
+if (standalone) hideInstallUi();
 installButton.addEventListener('click', install); document.querySelector('#prompt-install').addEventListener('click', install); document.querySelector('#dismiss-install').addEventListener('click', () => { installPrompt.hidden = true; localStorage.setItem('gitaru-install-dismissed', '1'); });
 window.addEventListener('load', () => { if (isIos && !standalone) { installTitle.textContent = 'Add Gitaru to your iPhone'; installDescription.textContent = 'In Safari, tap Share, then Add to Home Screen.'; showInstallPrompt(); } });
 const offlineBanner = document.querySelector('#offline-banner');
