@@ -1,5 +1,8 @@
 import crypto from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -20,7 +23,7 @@ export function sourceForUrl(rawUrl) {
   } catch { return null; }
 }
 
-export function createYtDlpAdapter({ validateUrl, maxDownloadSize, tokenTtlMs, tokens, binary = process.env.YTDLP_PATH || 'yt-dlp' }) {
+export function createYtDlpAdapter({ validateUrl, maxDownloadSize, tokenTtlMs, tokens, binary = resolveYtDlpBinary() }) {
   return {
     id: 'yt-dlp-public',
     async getMetadata(rawUrl) {
@@ -49,6 +52,21 @@ export function createYtDlpAdapter({ validateUrl, maxDownloadSize, tokenTtlMs, t
       process.once('close', (code) => { if (code !== 0 || received === 0) response.destroy(); else response.end(); });
     }
   };
+}
+
+function resolveYtDlpBinary() {
+  if (process.env.YTDLP_PATH) return process.env.YTDLP_PATH;
+  if (process.platform === 'win32') {
+    const packageRoot = path.join(os.homedir(), 'AppData', 'Local', 'Microsoft', 'WinGet', 'Packages');
+    try {
+      const packageName = fs.readdirSync(packageRoot).find((name) => name.startsWith('yt-dlp.yt-dlp_'));
+      if (packageName) {
+        const candidate = path.join(packageRoot, packageName, 'yt-dlp.exe');
+        if (fs.existsSync(candidate)) return candidate;
+      }
+    } catch {}
+  }
+  return 'yt-dlp';
 }
 
 async function inspect(binary, url) {
