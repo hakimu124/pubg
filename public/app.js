@@ -17,12 +17,16 @@ const standalone = window.matchMedia('(display-mode: standalone)').matches || wi
 
 function setStatus(text, busy = false) { status.textContent = text; status.classList.toggle('busy', busy); }
 function formatSize(bytes) { if (!bytes) return 'Size unavailable'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`; }
+function formatDuration(seconds) { if (!seconds) return ''; const minutes = Math.floor(seconds / 60); const remainder = Math.round(seconds % 60).toString().padStart(2, '0'); return `${minutes}:${remainder}`; }
 function showError(message) { result.hidden = true; setStatus(message); }
 function renderFormats(data) {
   document.querySelector('#result-source').textContent = data.source.toUpperCase();
   document.querySelector('#result-title').textContent = data.title || 'Public media';
-  document.querySelector('#result-note').textContent = data.note || '';
-  formats.innerHTML = data.formats.map((item) => `<div class="format-row"><div class="format-meta"><div><div class="format-type">${item.type.toUpperCase()}</div><strong>${item.quality} · ${item.format.toUpperCase()}</strong><div class="muted">${formatSize(item.size)}</div></div></div><button class="primary-button" data-format-id="${item.id}">Download <b>↓</b></button></div>`).join('');
+  document.querySelector('#result-note').textContent = [data.duration && `${formatDuration(data.duration)} duration`, data.note].filter(Boolean).join(' · ');
+  const thumbnail = document.querySelector('.media-placeholder');
+  if (data.thumbnail) thumbnail.innerHTML = `<img src="${data.thumbnail}" alt="" loading="lazy">`;
+  const groups = ['photo', 'video', 'audio'].filter((type) => data.formats.some((item) => item.type === type));
+  formats.innerHTML = groups.map((type) => `<div class="format-group"><div class="format-type">${type.toUpperCase()}</div>${data.formats.filter((item) => item.type === type).map((item) => `<div class="format-row"><div class="format-meta"><div><strong>${item.quality} · ${item.format.toUpperCase()}</strong><div class="muted">${formatSize(item.size)}</div></div></div><button class="primary-button" data-format-id="${item.id}">Download <b>↓</b></button></div>`).join('')}</div>`).join('');
   result.hidden = false;
   formats.querySelectorAll('[data-format-id]').forEach((button) => button.addEventListener('click', () => download(button.dataset.formatId, button)));
 }
@@ -46,9 +50,13 @@ menuButton.addEventListener('click', () => {
 desktopNav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => desktopNav.classList.remove('mobile-open')));
 
 fetch('/api/sources').then((response) => response.json()).then((data) => {
-  const tiktok = data.sources?.find((source) => source.id === 'tiktok');
-  const tiktokStatus = document.querySelector('[data-source-id="tiktok"] strong');
-  if (tiktok && tiktokStatus) tiktokStatus.textContent = tiktok.label;
+  data.sources?.forEach((source) => {
+    const sourceStatus = document.querySelector(`[data-source-id="${source.id}"]`);
+    if (!sourceStatus) return;
+    sourceStatus.querySelector('strong').textContent = source.label;
+    sourceStatus.querySelector('span:last-child').textContent = source.status;
+    sourceStatus.classList.toggle('muted-source', source.status !== 'Supported');
+  });
 }).catch(() => {});
 
 async function download(formatId, button) {

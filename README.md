@@ -32,4 +32,4 @@ node --test tests
 
 Open http://localhost:8787.
 
-Verified adapters support direct public audio/video URLs and public TikTok posts through `yt-dlp`. Private, login-only, DRM-protected, or unavailable posts are rejected. Copy `.env.example` to `.env`; set `YTDLP_PATH` to the local `yt-dlp` executable when it is not on PATH.
+Verified adapters support direct public audio/video URLs and public posts from YouTube, TikTok, Instagram, Facebook, X, and Vimeo through `yt-dlp`. The UI shows only formats actually returned by each source, including available video qualities, audio, and photos. Private, login-only, DRM-protected, or unavailable posts are rejected. Copy `.env.example` to `.env`; set `YTDLP_PATH` to the local `yt-dlp` executable when it is not on PATH.

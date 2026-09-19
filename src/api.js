@@ -4,11 +4,11 @@ import { config } from './config.js';
 import { validatePublicUrl } from './security/urlValidator.js';
 import { createRateLimiter } from './security/rateLimiter.js';
 import { createDirectMediaAdapter } from './services/directMediaAdapter.js';
-import { canHandleTikTok, createTikTokAdapter } from './services/tiktokAdapter.js';
+import { createYtDlpAdapter, sourceForUrl } from './services/ytDlpAdapter.js';
 
 const tokens = new Map();
 const adapter = createDirectMediaAdapter({ validateUrl: validatePublicUrl, maxDownloadSize: config.maxDownloadSize, tokenTtlMs: config.tokenTtlMs, tokens });
-const tiktokAdapter = createTikTokAdapter({ validateUrl: validatePublicUrl, maxDownloadSize: config.maxDownloadSize, tokenTtlMs: config.tokenTtlMs, tokens });
+const ytDlpAdapter = createYtDlpAdapter({ validateUrl: validatePublicUrl, maxDownloadSize: config.maxDownloadSize, tokenTtlMs: config.tokenTtlMs, tokens });
 const metadataAllowed = createRateLimiter({ windowMs: config.rateLimitWindowMs, limit: config.metadataRateLimit });
 const downloadAllowed = createRateLimiter({ windowMs: config.rateLimitWindowMs, limit: config.downloadRateLimit });
 
@@ -18,7 +18,7 @@ export function json(res, status, value) {
 }
 
 export function errorMessage(code) {
-  return ({ INVALID_URL: 'Invalid URL. Paste a complete http:// or https:// link.', UNSUPPORTED_SOURCE: 'Unsupported source. Paste a direct public media file link or a public TikTok post.', DOWNLOADER_UNAVAILABLE: 'TikTok is currently unavailable on this deployment because the media engine is not installed.', PRIVATE_CONTENT: 'Private content cannot be downloaded.', DRM_PROTECTED: 'DRM-protected media cannot be downloaded.', MEDIA_UNAVAILABLE: 'Media unavailable. Check that the public post still works.', TOO_LARGE: 'That file is too large for Gitaru.', RATE_LIMITED: 'Too many requests. Please try again later.', FORMAT_UNAVAILABLE: 'Format unavailable', TIMEOUT: 'Network error' })[code] || 'Processing failed';
+  return ({ INVALID_URL: 'Invalid URL. Paste a complete http:// or https:// link.', UNSUPPORTED_SOURCE: 'Unsupported source. Paste a direct public media file link or a supported public post.', DOWNLOADER_UNAVAILABLE: 'Social media downloads are currently unavailable because the media engine is not installed.', PRIVATE_CONTENT: 'Private content cannot be downloaded.', DRM_PROTECTED: 'DRM-protected media cannot be downloaded.', MEDIA_UNAVAILABLE: 'Media unavailable. Check that the public post still works.', TOO_LARGE: 'That file is too large for Gitaru.', RATE_LIMITED: 'Too many requests. Please try again later.', FORMAT_UNAVAILABLE: 'No downloadable formats were provided by the source.', TIMEOUT: 'Network error' })[code] || 'Processing failed';
 }
 
 async function readJson(req) {
@@ -31,7 +31,7 @@ export async function metadataHandler(req, res) {
   if (!metadataAllowed(req.socket.remoteAddress || 'unknown')) return json(res, 429, { success: false, code: 'RATE_LIMITED', error: errorMessage('RATE_LIMITED') });
   try {
     const url = (await readJson(req)).url;
-    return json(res, 200, await (canHandleTikTok(url) ? tiktokAdapter : adapter).getMetadata(url));
+    return json(res, 200, await (sourceForUrl(url) ? ytDlpAdapter : adapter).getMetadata(url));
   }
   catch (error) { return json(res, 400, { success: false, code: error.message, error: errorMessage(error.message) }); }
 }
@@ -42,13 +42,13 @@ export async function downloadHandler(req, res) {
     const formatId = (await readJson(req)).formatId;
     const item = tokens.get(String(formatId));
     if (!item) throw new Error('FORMAT_UNAVAILABLE');
-    return await (item.adapter === 'tiktok' ? tiktokAdapter : adapter).download(formatId, res);
+    return await (item.adapter === 'yt-dlp-public' ? ytDlpAdapter : adapter).download(formatId, res);
   }
   catch (error) { return json(res, error.message === 'RATE_LIMITED' ? 429 : 400, { success: false, code: error.message, error: errorMessage(error.message) }); }
 }
 
 export function sourcesHandler(_req, res) {
-  return json(res, 200, { success: true, sources: [{ id: adapter.id, label: adapter.label, status: 'Supported' }, { id: tiktokAdapter.id, label: tiktokAdapter.label, status: 'Supported' }, { id: 'platforms', label: 'Other platform pages', status: 'Coming soon' }] });
+  return json(res, 200, { success: true, sources: [{ id: adapter.id, label: adapter.label, status: 'Supported' }, { id: 'youtube', label: 'YouTube public videos', status: 'Supported' }, { id: 'tiktok', label: 'TikTok public posts', status: 'Supported' }, { id: 'instagram', label: 'Instagram public posts', status: 'Supported' }, { id: 'facebook', label: 'Facebook public videos', status: 'Supported' }, { id: 'x', label: 'X public posts', status: 'Supported' }, { id: 'vimeo', label: 'Vimeo public videos', status: 'Supported' }] });
 }
 
 export function staticHandler(req, res) {
