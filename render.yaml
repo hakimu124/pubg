@@ -1,13 +1,13 @@
 services:
   - type: web
     name: gitaru-api
-    runtime: node
-    buildCommand: npm install
-    startCommand: node server.js
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
       - key: FRONTEND_ORIGIN
         value: https://sirisia.netlify.app
       - key: MAX_DOWNLOAD_SIZE
         value: 500MB
       - key: YTDLP_PATH
-        value: yt-dlp
+        value: /usr/local/bin/yt-dlp
